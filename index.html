@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>My First Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--tg-theme-bg-color, #ffffff);
+      color: var(--tg-theme-text-color, #000000);
+    }
+    h1 { margin: 20px 0; }
+    button {
+      margin-top: 30px;
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 12px;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #ffffff);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 Hello from my Telegram Mini App!</h1>
+  <p id="user-info">Loading user info...</p>
+  <button id="close-btn">Close App</button>
+
+  <script>
+    // Make the app take full available space
+    Telegram.WebApp.expand();
+
+    // Show the current user's info
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    const infoEl = document.getElementById('user-info');
+    if (user) {
+      infoEl.innerHTML = `
+        👤 <strong>${user.first_name} ${user.last_name || ''}</strong><br>
+        ID: ${user.id}<br>
+        Username: @${user.username || 'none'}
+      `;
+    } else {
+      infoEl.textContent = "Running outside Telegram (for testing)";
+    }
+
+    // Close button
+    document.getElementById('close-btn').addEventListener('click', () => {
+      Telegram.WebApp.close();
+    });
+
+    // Tell Telegram the app is ready (removes loading screen)
+    Telegram.WebApp.ready();
+  </script>
+</body>
+</html>
