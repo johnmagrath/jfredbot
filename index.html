@@ -3,73 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>My First Telegram Mini App</title>
+  <title>jfredbot FX • Signals</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      text-align: center;
-      padding: 40px 20px;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
+      padding: 16px;
+      background: var(--tg-theme-bg-color, #0f172a);
+      color: var(--tg-theme-text-color, #e2e8f0);
     }
-    h1 { margin: 20px 0; }
+    h1 { margin: 10px 0 20px; font-size: 22px; }
+    .card {
+      background: #1e2937;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .pair { font-weight: 600; font-size: 17px; }
+    .score { font-size: 26px; font-weight: 700; }
+    .signal {
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .strong-buy { background: #166534; color: #4ade80; }
+    .buy { background: #166534; color: #86efac; }
+    .neutral { background: #334155; color: #94a3b8; }
+    .sell { background: #7f1d1d; color: #f87171; }
+    .strong-sell { background: #7f1d1d; color: #fca5a5; }
     button {
-      margin-top: 30px;
-      padding: 15px 30px;
-      font-size: 18px;
+      margin-top: 20px;
+      padding: 14px 28px;
+      font-size: 16px;
       border: none;
       border-radius: 12px;
       background: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
       cursor: pointer;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Hello from my Telegram Mini App!</h1>
-  <p id="user-info">Loading user info...</p>
-  <!-- counter section -->
-  <div style="margin-top:30px;">
-    <span id="counter" style="font-size:24px;">0</span>
-    <br>
-    <button id="increment-btn">Increment</button>
+  <h1>🚀 jfredbot FX • Live Signals</h1>
+
+  <div id="user-info" style="margin-bottom: 20px; font-size: 14px;"></div>
+
+  <div id="signals-container">
+    <p style="text-align:center; color:#64748b;">Loading live signals...</p>
   </div>
-  <button id="close-btn">Close App</button>
+
+  <button id="refresh-btn">🔄 Refresh Signals</button>
+  <button id="close-btn" style="background:#334155; margin-top:10px;">Close App</button>
 
   <script>
-    // Make the app take full available space
     Telegram.WebApp.expand();
-
-    // Show the current user's info
-    const user = Telegram.WebApp.initDataUnsafe.user;
-    const infoEl = document.getElementById('user-info');
-    if (user) {
-      infoEl.innerHTML = `
-        👤 <strong>${user.first_name} ${user.last_name || ''}</strong><br>
-        ID: ${user.id}<br>
-        Username: @${user.username || 'none'}
-      `;
-    } else {
-      infoEl.textContent = "Running outside Telegram (for testing)";
-    }
-
-    // Close button
-    document.getElementById('close-btn').addEventListener('click', () => {
-      Telegram.WebApp.close();
-    });
-
-    // Set up counter increment
-    let count = 0;
-    const counterEl = document.getElementById('counter');
-    document.getElementById('increment-btn').addEventListener('click', () => {
-      count += 1;
-      counterEl.textContent = count;
-    });
-
-    // Tell Telegram the app is ready (removes loading screen)
     Telegram.WebApp.ready();
-  </script>
-</body>
-</html>
+
+    // User info
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    const infoEl = document.getElementById('
