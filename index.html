@@ -70,6 +70,216 @@
       letter-spacing: 0.5px;
     }
     .fx-price {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111;
+    }
+    .status {
+      text-align: center;
+      font-size: 13px;
+      margin: 16px 0;
+      padding: 8px;
+      border-radius: 8px;
+      background: var(--tg-theme-secondary-bg-color);
+      color: #666;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      margin: 6px;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: var(--tg-theme-button-color);
+      color: var(--tg-theme-button-text-color);
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 20px;
+      line-height: 1.4;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: #666;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-top-color: #2481cc;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 jfredbot</h1>
+    <p>Live FX Rates • Major Pairs</p>
+  </div>
+
+  <div id="user-info" class="user-info">Loading user info...</div>
+
+  <div id="status" class="status">Fetching latest rates...</div>
+
+  <h2 class="section-title">💱 Major Pairs + Gold &amp; Silver (USD Base)</h2>
+  <div id="fx-list" class="fx-list">
+    <!-- Populated by JS -->
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="refresh-btn" class="btn btn-primary">🔄 Refresh Rates</button>
+    <button id="close-btn" class="btn btn-secondary">Close App</button>
+  </div>
+
+  <div class="footer">
+    Data from open.er-api.com (public &amp; reliable)<br>
+    Updates every 60s • No API key required
+  </div>
+
+  <script>
+    // Telegram Mini App setup
+    Telegram.WebApp.expand();
+    Telegram.WebApp.ready();
+
+    // User info
+    const user = Telegram.WebApp.initDataUnsafe.user;
+    const userInfoEl = document.getElementById('user-info');
+    if (user) {
+      userInfoEl.innerHTML = `👤 ${user.first_name} ${user.last_name || ''} • @${user.username || 'guest'}`;
+    } else {
+      userInfoEl.textContent = 'Running in preview mode';
+    }
+
+    // Close button
+    document.getElementById('close-btn').addEventListener('click', () => {
+      Telegram.WebApp.close();
+    });
+
+    // Major pairs + precious metals (all vs USD)
+    const majorPairs = [
+      'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'HKD', 'NZD', 'SGD',
+      'XAU', 'XAG'   // Gold & Silver
+    ];
+
+    let refreshInterval = null;
+
+    async function updateFXData() {
+      const statusEl = document.getElementById('status');
+      const listEl = document.getElementById('fx-list');
+      
+      statusEl.innerHTML = `<span class="loading"><span class="spinner"></span> Updating rates...</span>`;
+      listEl.innerHTML = '';
+
+      try {
+        // Single reliable call - very stable public API
+        const response = await fetch('https://open.er-api.com/v6/latest/USD', {
+          mode: 'cors'
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        const rates = data.rates;
+
+        if (!rates) throw new Error('No rates returned');
+
+        // Build list of major pairs with rates
+        const items = majorPairs
+          .filter(code => rates[code])
+          .map(code => ({
+            pair: `USD/${code}`,
+            price: rates[code]
+          }));
+
+        statusEl.innerHTML = `✅ Last updated: ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+
+        listEl.innerHTML = items.map(item => `
+          <div class="fx-item">
+            <div class="fx-pair">${item.pair}</div>
+            <div class="fx-price">${item.price.toFixed(4)}</div>
+          </div>
+        `).join('');
+
+      } catch (error) {
+        console.error('FX fetch failed:', error);
+        statusEl.innerHTML = '❌ Unable to load rates. Please check your connection and try again.';
+      }
+    }
+
+    // Refresh button
+    document.getElementById('refresh-btn').addEventListener('click', updateFXData);
+
+    // Initial load
+    setTimeout(updateFXData, 300);
+
+    // Auto-refresh every 60 seconds
+    refreshInterval = setInterval(updateFXData, 60000);
+
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+
+    console.log('%c[jfredbot] FX Mini App ready with stable public API', 'color:#666');
+  </script>
+</body>
+</html>      opacity: 0.7;
+    }
+    .user-info {
+      font-size: 13px;
+      opacity: 0.6;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      padding-left: 4px;
+    }
+    .fx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 420px;
+      margin: 0 auto 24px;
+    }
+    .fx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--tg-theme-secondary-bg-color);
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .fx-pair {
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+    }
+    .fx-price {
       font-size: 15px;
       font-weight: 600;
       color: #555;
