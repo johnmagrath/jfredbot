@@ -3,56 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>My First Telegram Mini App</title>
+  <title>jfredbot • FX Scanner</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --tg-theme-bg-color: #ffffff;
+      --tg-theme-text-color: #000000;
+      --tg-theme-button-color: #2481cc;
+      --tg-theme-button-text-color: #ffffff;
+      --tg-theme-secondary-bg-color: #f0f0f0;
+    }
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      text-align: center;
-      padding: 40px 20px;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
+      padding: 20px 16px;
+      background: var(--tg-theme-bg-color);
+      color: var(--tg-theme-text-color);
+      min-height: 100vh;
+      box-sizing: border-box;
     }
-    h1 { margin: 20px 0; }
-    button {
-      margin-top: 30px;
-      padding: 15px 30px;
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .header p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    .user-info {
+      font-size: 13px;
+      opacity: 0.6;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .section-title {
       font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+      padding-left: 4px;
+    }
+    .fx-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 420px;
+      margin: 0 auto 24px;
+    }
+    .fx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--tg-theme-secondary-bg-color);
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .fx-pair {
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+    }
+    .fx-price {
+      font-size: 15px;
+      font-weight: 600;
+      color: #555;
+    }
+    .fx-change {
+      font-size: 15px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      min-width: 70px;
+      text-align: center;
+    }
+    .positive {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .negative {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .status {
+      text-align: center;
+      font-size: 13px;
+      margin: 16px 0;
+      padding: 8px;
+      border-radius: 8px;
+      background: var(--tg-theme-secondary-bg-color);
+      color: #666;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 600;
       border: none;
       border-radius: 12px;
-      background: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #ffffff);
       cursor: pointer;
+      transition: transform 0.1s ease;
+      margin: 6px;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+    .btn-primary {
+      background: var(--tg-theme-button-color);
+      color: var(--tg-theme-button-text-color);
+    }
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.5;
+      margin-top: 20px;
+      line-height: 1.4;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px;
+      color: #666;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-top-color: #2481cc;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Hello from my Telegram Mini App!</h1>
-  <p id="user-info">Loading user info...</p>
-  <!-- counter section -->
-  <div style="margin-top:30px;">
-    <span id="counter" style="font-size:24px;">0</span>
-    <br>
-    <button id="increment-btn">Increment</button>
+  <div class="header">
+    <h1>🚀 jfredbot</h1>
+    <p>Top 5 FX Performers • Last 10 Minutes</p>
   </div>
-  <button id="close-btn">Close App</button>
+
+  <div id="user-info" class="user-info">Loading user info...</div>
+
+  <div id="status" class="status">Fetching latest market data...</div>
+
+  <h2 class="section-title">🏆 Top Movers</h2>
+  <div id="fx-list" class="fx-list">
+    <!-- Populated by JS -->
+  </div>
+
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="refresh-btn" class="btn btn-primary">🔄 Refresh Data</button>
+    <button id="close-btn" class="btn btn-secondary">Close App</button>
+  </div>
+
+  <div class="footer">
+    Data from Yahoo Finance public API<br>
+    Updates every 60s • For demo purposes only
+  </div>
 
   <script>
-    // Make the app take full available space
+    // Telegram Mini App setup
     Telegram.WebApp.expand();
+    Telegram.WebApp.ready();
 
-    // Show the current user's info
+    // User info
     const user = Telegram.WebApp.initDataUnsafe.user;
-    const infoEl = document.getElementById('user-info');
+    const userInfoEl = document.getElementById('user-info');
     if (user) {
-      infoEl.innerHTML = `
-        👤 <strong>${user.first_name} ${user.last_name || ''}</strong><br>
-        ID: ${user.id}<br>
-        Username: @${user.username || 'none'}
-      `;
+      userInfoEl.innerHTML = `👤 ${user.first_name} ${user.last_name || ''} • @${user.username || 'guest'}`;
     } else {
-      infoEl.textContent = "Running outside Telegram (for testing)";
+      userInfoEl.textContent = 'Running in preview mode';
     }
 
     // Close button
@@ -60,16 +193,161 @@
       Telegram.WebApp.close();
     });
 
-    // Set up counter increment
-    let count = 0;
-    const counterEl = document.getElementById('counter');
-    document.getElementById('increment-btn').addEventListener('click', () => {
-      count += 1;
-      counterEl.textContent = count;
+    // FX pairs (Yahoo ticker format)
+    const fxPairs = [
+      { yahoo: 'EURUSD=X', display: 'EUR/USD' },
+      { yahoo: 'GBPUSD=X', display: 'GBP/USD' },
+      { yahoo: 'USDJPY=X', display: 'USD/JPY' },
+      { yahoo: 'AUDUSD=X', display: 'AUD/USD' },
+      { yahoo: 'USDCAD=X', display: 'USD/CAD' },
+      { yahoo: 'NZDUSD=X', display: 'NZD/USD' },
+      { yahoo: 'EURGBP=X', display: 'EUR/GBP' },
+      { yahoo: 'EURJPY=X', display: 'EUR/JPY' },
+      { yahoo: 'GBPJPY=X', display: 'GBP/JPY' },
+      { yahoo: 'AUDJPY=X', display: 'AUD/JPY' }
+    ];
+
+    let refreshInterval = null;
+
+    async function fetchFXPerformance(pair) {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${pair.yahoo}?interval=1m&range=1d`;
+      try {
+        const response = await fetch(url, { 
+          headers: { 'Accept': 'application/json' },
+          mode: 'cors'
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const json = await response.json();
+        const result = json.chart.result?.[0];
+        if (!result) return null;
+
+        const timestamps = result.timestamp || [];
+        const closes = result.indicators?.quote?.[0]?.close || [];
+        
+        if (timestamps.length === 0 || closes.length === 0) return null;
+
+        // Find most recent valid close
+        let lastIdx = closes.length - 1;
+        while (lastIdx >= 0 && (closes[lastIdx] === null || closes[lastIdx] === undefined)) lastIdx--;
+        if (lastIdx < 0) return null;
+
+        const currentPrice = closes[lastIdx];
+        const currentTime = timestamps[lastIdx];
+
+        // Find price ~10 minutes ago (600 seconds)
+        const targetTime = currentTime - 600;
+        let oldIdx = lastIdx;
+        while (oldIdx >= 0 && timestamps[oldIdx] > targetTime) oldIdx--;
+        
+        // Skip any nulls
+        while (oldIdx >= 0 && (closes[oldIdx] === null || closes[oldIdx] === undefined)) oldIdx--;
+        
+        if (oldIdx < 0 || timestamps[oldIdx] < currentTime - 1200) {
+          // Fallback: use second last valid if 10min not available
+          oldIdx = lastIdx - 1;
+          while (oldIdx >= 0 && (closes[oldIdx] === null || closes[oldIdx] === undefined)) oldIdx--;
+          if (oldIdx < 0) return null;
+        }
+
+        const oldPrice = closes[oldIdx];
+        const pctChange = ((currentPrice - oldPrice) / oldPrice) * 100;
+
+        return {
+          display: pair.display,
+          current: currentPrice,
+          pct: pctChange,
+          updated: new Date(currentTime * 1000)
+        };
+      } catch (err) {
+        console.warn(`Failed to fetch ${pair.display}:`, err.message);
+        return null;
+      }
+    }
+
+    async function updateFXData() {
+      const statusEl = document.getElementById('status');
+      const listEl = document.getElementById('fx-list');
+      
+      statusEl.innerHTML = `<span class="loading"><span class="spinner"></span> Updating market data...</span>`;
+      listEl.innerHTML = '';
+
+      try {
+        const results = await Promise.all(
+          fxPairs.map(pair => fetchFXPerformance(pair))
+        );
+
+        const validResults = results.filter(r => r !== null);
+        
+        if (validResults.length === 0) {
+          statusEl.innerHTML = '⚠️ Unable to fetch live data. Please try again later.';
+          return;
+        }
+
+        // Sort by performance (highest % change first)
+        validResults.sort((a, b) => b.pct - a.pct);
+
+        // Take top 5
+        const top5 = validResults.slice(0, 5);
+
+        // Update status
+        const latestTime = Math.max(...top5.map(r => r.updated.getTime()));
+        const timeStr = new Date(latestTime).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        statusEl.innerHTML = `✅ Last updated: ${timeStr} (approx. 10 min change)`;
+
+        // Render list
+        listEl.innerHTML = top5.map(item => {
+          const isPositive = item.pct >= 0;
+          const changeClass = isPositive ? 'positive' : 'negative';
+          const arrow = isPositive ? '▲' : '▼';
+          const priceStr = item.current < 10 
+            ? item.current.toFixed(5) 
+            : item.current.toFixed(4);
+          
+          return `
+            <div class="fx-item">
+              <div>
+                <div class="fx-pair">${item.display}</div>
+              </div>
+              <div style="text-align: right; display: flex; align-items: center; gap: 12px;">
+                <div class="fx-price">${priceStr}</div>
+                <div class="fx-change ${changeClass}">
+                  ${arrow} ${Math.abs(item.pct).toFixed(2)}%
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (error) {
+        console.error('Update failed:', error);
+        statusEl.innerHTML = '❌ Error loading data. Check your connection.';
+      }
+    }
+
+    // Refresh button
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+      updateFXData();
     });
 
-    // Tell Telegram the app is ready (removes loading screen)
-    Telegram.WebApp.ready();
+    // Initial load
+    updateFXData();
+
+    // Auto-refresh every 60 seconds
+    refreshInterval = setInterval(() => {
+      updateFXData();
+    }, 60000);
+
+    // Cleanup on close (optional)
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+
+    // Optional: Pull-to-refresh hint for Telegram
+    console.log('%c[jfredbot] FX Mini App ready — top 5 movers loaded', 'color:#666');
   </script>
 </body>
 </html>
