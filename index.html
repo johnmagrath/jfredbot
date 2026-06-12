@@ -349,12 +349,16 @@
       <div class="row">
         <button id="send-btn" class="tg-btn">Send to bot</button>
       </div>
-      <div class="hint">Uses sendData — works when launched via bot web_app button</div>
+      <div class="hint">Messages are saved to your persisted memory log below (re-open app to see history)</div>
     </div>
 
     <div class="card">
-      <h2>Recent activity</h2>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+        <h2 style="margin:0;">Memory log</h2>
+        <button id="clear-log-btn" class="tg-btn secondary" style="width:auto; padding:2px 8px; font-size:10px; font-weight:500; border-radius:6px;">clear</button>
+      </div>
       <div id="log" class="log"></div>
+      <div class="hint" style="margin-top:4px;">Persisted per-user via Telegram CloudStorage (survives reloads & app restarts)</div>
     </div>
 
     <div class="row">
@@ -368,7 +372,7 @@
     </div>
 
     <div class="footer">
-      jfredbot • optimized Telegram Mini App<br>
+      jfredbot v0.2 • memory log + score persist via CloudStorage<br>
       <span style="cursor:pointer; text-decoration:underline" id="toggle-dev">toggle dev info</span>
     </div>
   </div>
@@ -449,6 +453,54 @@
       localStorage.setItem('jfred_score', String(score));
     }
 
+    // === Persisted memory / chat log (like the score, survives reloads) ===
+    function loadLog(cb) {
+      const key = 'jfred_log';
+      if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItem === 'function') {
+        tg.CloudStorage.getItem(key, (err, value) => {
+          if (!err && value) {
+            try {
+              const parsed = JSON.parse(value);
+              logEntries = (parsed || []).map(p => ({
+                type: p.type,
+                payload: p.payload,
+                time: p.time ? new Date(p.time) : new Date()
+              }));
+            } catch (e) { logEntries = []; }
+          }
+          if (cb) cb();
+        });
+      } else {
+        const v = localStorage.getItem(key);
+        if (v) {
+          try {
+            const parsed = JSON.parse(v);
+            logEntries = (parsed || []).map(p => ({
+              type: p.type,
+              payload: p.payload,
+              time: p.time ? new Date(p.time) : new Date()
+            }));
+          } catch (e) { logEntries = []; }
+        }
+        if (cb) cb();
+      }
+    }
+
+    function saveLog() {
+      const toStore = logEntries.map(e => ({
+        type: e.type,
+        payload: e.payload,
+        time: (e.time instanceof Date ? e.time : new Date(e.time)).toISOString()
+      }));
+      const json = JSON.stringify(toStore);
+      if (tg && tg.CloudStorage && typeof tg.CloudStorage.setItem === 'function') {
+        tg.CloudStorage.setItem('jfred_log', json, (err) => {
+          if (err) console.warn('CloudStorage log save failed, using local fallback', err);
+        });
+      }
+      localStorage.setItem('jfred_log', json);
+    }
+
     function updateScoreUI() {
       scoreEl.textContent = score;
     }
@@ -466,13 +518,14 @@
       sendToBot({ type: 'score_change', delta, total: score, ts: Date.now() });
     }
 
-    // === Activity log (local only, demo purposes) ===
+    // === Activity / memory log (persisted via CloudStorage like the score) ===
     function addToLog(type, payload) {
       const entry = { type, payload, time: new Date() };
       logEntries.unshift(entry);
-      if (logEntries.length > 12) logEntries.pop();
+      if (logEntries.length > 15) logEntries.pop();
 
       renderLog();
+      saveLog();
     }
 
     function renderLog() {
@@ -534,21 +587,32 @@
       joke: "Why do programmers prefer dark mode? Because light attracts bugs! 🪲",
       motivate: "You've got this. One small interaction at a time. jfredbot believes in you 💙",
       time: `Server time: ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} UTC`,
-      help: "Try the quick commands, send a free-form message, or tap +1 on your score. Data you send reaches the bot when launched from a web_app button."
+      help: "Try the quick commands, send a free-form message, or tap +1 on your score. Everything you send is persisted in your personal memory log (CloudStorage).",
+      hello: "Hey! 👋 How can I help or what do you want to remember today?",
+      thanks: "You're welcome! Glad I could help."
     };
 
     function simulateBotReply(payload) {
-      let replyText = "Thanks! I got that.";
+      let replyText = "Noted.";
 
       if (payload.cmd && canned[payload.cmd]) {
         replyText = canned[payload.cmd];
       } else if (payload.type === 'message' && payload.text) {
-        const t = payload.text.toLowerCase();
+        const t = payload.text.toLowerCase().trim();
+        const original = payload.text;
+
         if (t.includes('joke')) replyText = canned.joke;
         else if (t.includes('motivat') || t.includes('encourage')) replyText = canned.motivate;
         else if (t.includes('time') || t.includes('clock')) replyText = canned.time;
         else if (t.includes('help') || t.includes('what')) replyText = canned.help;
-        else replyText = `Got it: "${payload.text}". I'll remember that for next time.`;
+        else if (/^(hi|hello|hey|yo)/.test(t)) replyText = canned.hello;
+        else if (t.includes('thank')) replyText = canned.thanks;
+        else if (t.includes('remember') || t.includes('note') || t.includes('save') || t.includes('todo') || t.includes('remind')) {
+          replyText = `Saved to memory: "${original}". Reopen the app anytime to see your log.`;
+        }
+        else {
+          replyText = `Noted. Saved "${original}" to your personal memory. Check the log below (persists via CloudStorage).`;
+        }
       } else if (payload.type === 'score_change') {
         replyText = payload.delta > 0 ? `+${payload.delta} recorded. New total: ${payload.total}` : `Score adjusted to ${payload.total}.`;
       }
@@ -677,6 +741,19 @@
           msgInput.select();
         }
       });
+
+      // Clear memory log button (makes the persisted messages feel manageable)
+      const clearLogBtn = document.getElementById('clear-log-btn');
+      if (clearLogBtn) {
+        clearLogBtn.addEventListener('click', () => {
+          if (confirm('Clear your jfredbot memory log and chat history?')) {
+            logEntries = [];
+            renderLog();
+            saveLog();
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+          }
+        });
+      }
     }
 
     function renderDevInfo() {
@@ -699,21 +776,24 @@
     function init() {
       renderUser();
 
-      // Load persisted score then render
-      loadScore(() => {
-        updateScoreUI();
-      });
-
       setupActions();
       setupChat();
       setupControls();
 
-      // Populate a nice welcome log entry
-      setTimeout(() => {
+      // Load persisted score (non-blocking)
+      loadScore(() => {
+        updateScoreUI();
+      });
+
+      // Load persisted memory log (this is what makes the messaging feature actually useful)
+      loadLog(() => {
+        renderLog();
+
+        // Welcome only on first-ever open (when no history loaded)
         if (logEntries.length === 0) {
-          addToLog('bot', { text: 'Welcome! Tap quick commands or send a message. +1 your score anytime.' });
+          addToLog('bot', { text: 'Welcome! Quick commands + free-form messages are saved to your personal memory log (persisted with Telegram CloudStorage, just like the J-Score). Re-open the app anytime to see what you told me.' });
         }
-      }, 380);
+      });
 
       // Show dev info automatically only outside Telegram for convenience
       if (!isTelegram()) {
@@ -732,7 +812,7 @@
       }
 
       // Expose a tiny debug hook
-      window.JFRED = { tg, sendToBot, getScore: () => score };
+      window.JFRED = { tg, sendToBot, getScore: () => score, clearMemory: () => { logEntries=[]; renderLog(); saveLog(); } };
     }
 
     // Bootstrap
