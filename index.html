@@ -2,74 +2,741 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>My First Telegram Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>jfredbot</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    :root {
+      --accent: #0ea5a4;
+    }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      text-align: center;
-      padding: 40px 20px;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: var(--tg-theme-bg-color, #ffffff);
       color: var(--tg-theme-text-color, #000000);
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
     }
-    h1 { margin: 20px 0; }
-    button {
-      margin-top: 30px;
-      padding: 15px 30px;
-      font-size: 18px;
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 12px 16px 100px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 16px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 22px;
+      letter-spacing: -0.3px;
+    }
+    .logo svg { width: 28px; height: 28px; }
+    .header-right {
+      font-size: 13px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #2b8ed6, #0ea5a4);
+      border-radius: 20px;
+      padding: 22px 20px;
+      color: #fff;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 140px; height: 140px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+    }
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .hero p {
+      margin: 0;
+      opacity: 0.92;
+      font-size: 15px;
+    }
+    .plane {
+      position: absolute;
+      right: 18px;
+      bottom: 14px;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f7);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--tg-theme-section-separator-color, rgba(0,0,0,0.06));
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--tg-theme-hint-color, #707579);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .avatar {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .user-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .user-meta strong {
+      display: block;
+      font-size: 17px;
+    }
+    .user-meta span {
+      font-size: 13px;
+      color: var(--tg-theme-hint-color, #999);
+    }
+
+    .score {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .score-value {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-label {
+      font-size: 13px;
+      color: var(--tg-theme-hint-color, #707579);
+    }
+    .score-btn {
+      padding: 10px 22px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 999px;
+      border: none;
+      background: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #fff);
+      cursor: pointer;
+      transition: transform 0.1s ease, opacity 0.1s;
+      white-space: nowrap;
+    }
+    .score-btn:active { transform: scale(0.96); }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .action-btn {
+      padding: 14px 12px;
+      font-size: 15px;
+      font-weight: 500;
+      border: 1px solid var(--tg-theme-section-separator-color, rgba(0,0,0,0.08));
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.1s, transform 0.1s;
+    }
+    .action-btn:active {
+      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+      transform: scale(0.985);
+    }
+    .action-btn .icon { font-size: 18px; }
+
+    .chat textarea {
+      width: 100%;
+      min-height: 78px;
+      resize: vertical;
+      border: 1px solid var(--tg-theme-section-separator-color, rgba(0,0,0,0.1));
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-family: inherit;
+      background: var(--tg-theme-bg-color, #fff);
+      color: var(--tg-theme-text-color, #000);
+      margin-bottom: 8px;
+    }
+    .chat textarea:focus {
+      outline: none;
+      border-color: var(--tg-theme-button-color, #2481cc);
+    }
+
+    .log {
+      max-height: 180px;
+      overflow-y: auto;
+      font-size: 13.5px;
+    }
+    .log-entry {
+      padding: 7px 0;
+      border-bottom: 1px solid var(--tg-theme-section-separator-color, rgba(0,0,0,0.06));
+      display: flex;
+      gap: 8px;
+    }
+    .log-entry:last-child { border-bottom: none; }
+    .log-entry .tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--tg-theme-hint-color, #999);
+      color: var(--tg-theme-bg-color, #fff);
+      align-self: flex-start;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+    .log-entry.bot .tag { background: #0ea5a4; }
+
+    .tg-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
       border: none;
       border-radius: 12px;
       background: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #ffffff);
+      color: var(--tg-theme-button-text-color, #fff);
       cursor: pointer;
+    }
+    .tg-btn.secondary {
+      background: var(--tg-theme-secondary-bg-color, #f5f5f7);
+      color: var(--tg-theme-text-color, #000);
+      border: 1px solid var(--tg-theme-section-separator-color, rgba(0,0,0,0.08));
+    }
+    .tg-btn:active { opacity: 0.9; }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .row > * { flex: 1; }
+
+    .hint {
+      font-size: 12px;
+      color: var(--tg-theme-hint-color, #999);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .dev {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      background: var(--tg-theme-secondary-bg-color, #f5f5f7);
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-top: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      color: var(--tg-theme-hint-color, #707579);
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--tg-theme-hint-color, #999);
+      margin-top: 24px;
+      padding-bottom: 8px;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Hello from my Telegram Mini App!</h1>
-  <p id="user-info">Loading user info...</p>
-  <!-- counter section -->
-  <div style="margin-top:30px;">
-    <span id="counter" style="font-size:24px;">0</span>
-    <br>
-    <button id="increment-btn">Increment</button>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M2 11.5L22 2L11 21L9 14L2 11.5Z" fill="var(--tg-theme-button-color, #2481cc)"/>
+          <path d="M2 11.5L11 21L9 14L2 11.5Z" fill="var(--tg-theme-button-color, #2481cc)" opacity="0.6"/>
+          <path d="M2 11.5L22 2L11 10L2 11.5Z" fill="var(--tg-theme-button-color, #2481cc)" opacity="0.85"/>
+        </svg>
+        <span>jfredbot</span>
+      </div>
+      <div class="header-right">
+        <span class="status"><span class="status-dot"></span> online</span>
+      </div>
+    </header>
+
+    <div class="hero">
+      <h1>Hey there!</h1>
+      <p>Your friendly mini-app companion inside Telegram.</p>
+      <div class="plane" aria-hidden="true">
+        <svg width="42" height="42" viewBox="0 0 24 24" fill="white" opacity="0.85"><path d="M2 11.5L22 2L11 21L9 14L2 11.5Z"/><path d="M2 11.5L11 21L9 14L2 11.5Z" opacity="0.5"/><path d="M2 11.5L22 2L11 10L2 11.5Z" opacity="0.7"/></svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>You</h2>
+      <div class="user-row" id="user-info">
+        <div class="avatar">👤</div>
+        <div class="user-meta">
+          <strong id="user-name">Loading...</strong>
+          <span id="user-details">Connecting to Telegram…</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>J-Score</h2>
+      <div class="score">
+        <div>
+          <div id="score-value" class="score-value">0</div>
+          <div class="score-label">interactions with jfredbot</div>
+        </div>
+        <button id="score-btn" class="score-btn">+1</button>
+      </div>
+      <div class="hint">Persisted in Telegram Cloud (when supported)</div>
+    </div>
+
+    <div class="card">
+      <h2>Quick commands</h2>
+      <div class="actions">
+        <button class="action-btn" data-cmd="joke"><span class="icon">😂</span> Tell me a joke</button>
+        <button class="action-btn" data-cmd="motivate"><span class="icon">💪</span> Motivate me</button>
+        <button class="action-btn" data-cmd="time"><span class="icon">🕒</span> What's the time?</button>
+        <button class="action-btn" data-cmd="help"><span class="icon">❓</span> Help</button>
+      </div>
+    </div>
+
+    <div class="card chat">
+      <h2>Message jfredbot</h2>
+      <textarea id="message-input" placeholder="Ask anything or give a command..."></textarea>
+      <div class="row">
+        <button id="send-btn" class="tg-btn">Send to bot</button>
+      </div>
+      <div class="hint">Uses sendData — works when launched via bot web_app button</div>
+    </div>
+
+    <div class="card">
+      <h2>Recent activity</h2>
+      <div id="log" class="log"></div>
+    </div>
+
+    <div class="row">
+      <button id="share-btn" class="tg-btn secondary">Share jfredbot</button>
+      <button id="close-btn" class="tg-btn secondary">Close</button>
+    </div>
+
+    <div class="card" id="dev-card" style="display:none;">
+      <h2>Dev info</h2>
+      <div id="dev-info" class="dev"></div>
+    </div>
+
+    <div class="footer">
+      jfredbot • optimized Telegram Mini App<br>
+      <span style="cursor:pointer; text-decoration:underline" id="toggle-dev">toggle dev info</span>
+    </div>
   </div>
-  <button id="close-btn">Close App</button>
 
   <script>
-    // Make the app take full available space
-    Telegram.WebApp.expand();
+    // === Telegram Mini App bootstrap & optimizations ===
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
 
-    // Show the current user's info
-    const user = Telegram.WebApp.initDataUnsafe.user;
-    const infoEl = document.getElementById('user-info');
-    if (user) {
-      infoEl.innerHTML = `
-        👤 <strong>${user.first_name} ${user.last_name || ''}</strong><br>
-        ID: ${user.id}<br>
-        Username: @${user.username || 'none'}
-      `;
-    } else {
-      infoEl.textContent = "Running outside Telegram (for testing)";
+    function isTelegram() {
+      return !!(tg && tg.initDataUnsafe);
     }
 
-    // Close button
-    document.getElementById('close-btn').addEventListener('click', () => {
-      Telegram.WebApp.close();
-    });
+    // Call ready() as early as possible to dismiss the loading screen
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      // Respect user theme automatically via CSS vars
+      // Make the app feel native
+      try { tg.setHeaderColor('secondary_bg_color'); } catch(e){}
+      try { tg.enableClosingConfirmation(); } catch(e){}
+    }
 
-    // Set up counter increment
-    let count = 0;
-    const counterEl = document.getElementById('counter');
-    document.getElementById('increment-btn').addEventListener('click', () => {
-      count += 1;
-      counterEl.textContent = count;
-    });
+    // Elements
+    const scoreEl = document.getElementById('score-value');
+    const scoreBtn = document.getElementById('score-btn');
+    const logEl = document.getElementById('log');
+    const msgInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const closeBtn = document.getElementById('close-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const toggleDev = document.getElementById('toggle-dev');
+    const devCard = document.getElementById('dev-card');
+    const devInfo = document.getElementById('dev-info');
 
-    // Tell Telegram the app is ready (removes loading screen)
-    Telegram.WebApp.ready();
+    let score = 0;
+    let logEntries = [];
+
+    // === User info (safe display only) ===
+    function renderUser() {
+      const nameEl = document.getElementById('user-name');
+      const detailsEl = document.getElementById('user-details');
+
+      if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+        nameEl.textContent = 'Guest (outside Telegram)';
+        detailsEl.textContent = 'Open via a Telegram bot button for full features';
+        return;
+      }
+
+      const u = tg.initDataUnsafe.user;
+      const fullName = [u.first_name, u.last_name].filter(Boolean).join(' ');
+      nameEl.textContent = fullName || 'Telegram User';
+      detailsEl.innerHTML = `ID: ${u.id} • @${u.username || 'no username'}<br>Platform: ${tg.platform || 'unknown'} • v${tg.version || '?'}`;
+    }
+
+    // === Score with CloudStorage (best effort persistence) ===
+    function loadScore(cb) {
+      if (tg && tg.CloudStorage && typeof tg.CloudStorage.getItem === 'function') {
+        tg.CloudStorage.getItem('jfred_score', (err, value) => {
+          if (!err && value) {
+            const n = parseInt(value, 10);
+            if (!isNaN(n)) score = n;
+          }
+          cb();
+        });
+      } else {
+        const v = localStorage.getItem('jfred_score');
+        if (v) score = parseInt(v, 10) || 0;
+        cb();
+      }
+    }
+
+    function saveScore() {
+      if (tg && tg.CloudStorage && typeof tg.CloudStorage.setItem === 'function') {
+        tg.CloudStorage.setItem('jfred_score', String(score), (err) => {
+          if (err) console.warn('CloudStorage save failed, using local fallback', err);
+        });
+      }
+      localStorage.setItem('jfred_score', String(score));
+    }
+
+    function updateScoreUI() {
+      scoreEl.textContent = score;
+    }
+
+    function changeScore(delta) {
+      score = Math.max(0, score + delta);
+      updateScoreUI();
+      saveScore();
+
+      if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred(delta > 0 ? 'medium' : 'light');
+      }
+
+      // Send a point event to the bot (if launched properly)
+      sendToBot({ type: 'score_change', delta, total: score, ts: Date.now() });
+    }
+
+    // === Activity log (local only, demo purposes) ===
+    function addToLog(type, payload) {
+      const entry = { type, payload, time: new Date() };
+      logEntries.unshift(entry);
+      if (logEntries.length > 12) logEntries.pop();
+
+      renderLog();
+    }
+
+    function renderLog() {
+      logEl.innerHTML = '';
+      logEntries.forEach((e) => {
+        const div = document.createElement('div');
+        div.className = `log-entry ${e.type === 'bot' ? 'bot' : ''}`;
+
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = e.type === 'bot' ? 'bot' : 'you';
+
+        const content = document.createElement('span');
+        let text = '';
+        if (e.type === 'bot') {
+          text = e.payload.text || JSON.stringify(e.payload);
+        } else {
+          text = `${e.payload.type || 'action'}`;
+          if (e.payload.cmd) text += ` → ${e.payload.cmd}`;
+          if (e.payload.text) text += `: "${e.payload.text}"`;
+          if (e.payload.total != null) text += ` (score=${e.payload.total})`;
+        }
+        content.textContent = text;
+
+        div.appendChild(tag);
+        div.appendChild(content);
+        logEl.appendChild(div);
+      });
+    }
+
+    // === Sending data to the Telegram bot ===
+    // This only delivers data back to your bot when the Mini App was opened
+    // from an InlineKeyboardButton with web_app or a Menu Button configured as web app.
+    function sendToBot(payload) {
+      const dataStr = JSON.stringify(payload);
+
+      if (tg && typeof tg.sendData === 'function') {
+        try {
+          tg.sendData(dataStr);
+          // After sendData the app usually closes automatically.
+          // We still record locally for the demo experience.
+        } catch (err) {
+          console.warn('sendData failed (probably not launched from web_app button)', err);
+        }
+      } else {
+        console.log('sendData not available (testing outside Telegram):', dataStr);
+      }
+
+      addToLog('you', payload);
+
+      // Always give immediate local feedback so the demo is satisfying
+      setTimeout(() => {
+        simulateBotReply(payload);
+      }, 420);
+    }
+
+    // Local simulation of bot intelligence (for great UX even in preview)
+    const canned = {
+      joke: "Why do programmers prefer dark mode? Because light attracts bugs! 🪲",
+      motivate: "You've got this. One small interaction at a time. jfredbot believes in you 💙",
+      time: `Server time: ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} UTC`,
+      help: "Try the quick commands, send a free-form message, or tap +1 on your score. Data you send reaches the bot when launched from a web_app button."
+    };
+
+    function simulateBotReply(payload) {
+      let replyText = "Thanks! I got that.";
+
+      if (payload.cmd && canned[payload.cmd]) {
+        replyText = canned[payload.cmd];
+      } else if (payload.type === 'message' && payload.text) {
+        const t = payload.text.toLowerCase();
+        if (t.includes('joke')) replyText = canned.joke;
+        else if (t.includes('motivat') || t.includes('encourage')) replyText = canned.motivate;
+        else if (t.includes('time') || t.includes('clock')) replyText = canned.time;
+        else if (t.includes('help') || t.includes('what')) replyText = canned.help;
+        else replyText = `Got it: "${payload.text}". I'll remember that for next time.`;
+      } else if (payload.type === 'score_change') {
+        replyText = payload.delta > 0 ? `+${payload.delta} recorded. New total: ${payload.total}` : `Score adjusted to ${payload.total}.`;
+      }
+
+      const botPayload = { text: replyText, replyTo: payload.type || payload.cmd };
+      addToLog('bot', botPayload);
+
+      // Optional: nice haptic for "bot replied"
+      if (tg && tg.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    // === Quick action buttons ===
+    function setupActions() {
+      document.querySelectorAll('.action-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const cmd = btn.dataset.cmd;
+          if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+          sendToBot({ type: 'quick_cmd', cmd, ts: Date.now() });
+        });
+      });
+    }
+
+    // === Main input + MainButton integration ===
+    function setupChat() {
+      // Primary action lives on Telegram's MainButton when there's content
+      function updateMainButton() {
+        if (!tg || !tg.MainButton) return;
+        const hasText = msgInput.value.trim().length > 0;
+        if (hasText) {
+          tg.MainButton.setText('Send to jfredbot');
+          tg.MainButton.show();
+        } else {
+          tg.MainButton.hide();
+        }
+      }
+
+      msgInput.addEventListener('input', updateMainButton);
+      msgInput.addEventListener('focus', () => {
+        if (tg) tg.expand();
+      });
+
+      function doSend() {
+        const text = msgInput.value.trim();
+        if (!text) return;
+
+        sendToBot({ type: 'message', text, ts: Date.now() });
+
+        // Clear and hide main button
+        msgInput.value = '';
+        if (tg && tg.MainButton) tg.MainButton.hide();
+      }
+
+      sendBtn.addEventListener('click', doSend);
+
+      msgInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          doSend();
+        }
+      });
+
+      // Wire MainButton
+      if (tg && tg.MainButton) {
+        tg.MainButton.onClick(() => {
+          if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+          doSend();
+        });
+        // Ensure clean state on load
+        tg.MainButton.hide();
+      }
+
+      // Bonus: show main button hint on desktop-ish
+      updateMainButton();
+    }
+
+    // === Other controls ===
+    function setupControls() {
+      // Score increment (also demonstrates haptic + data send)
+      scoreBtn.addEventListener('click', () => {
+        changeScore(1);
+      });
+
+      // Close (with nice feedback)
+      closeBtn.addEventListener('click', () => {
+        if (tg) {
+          if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+          tg.close();
+        } else {
+          window.close();
+        }
+      });
+
+      // Share: use switchInlineQuery so friends can launch the same mini app from your bot
+      shareBtn.addEventListener('click', () => {
+        if (tg && typeof tg.switchInlineQuery === 'function') {
+          tg.switchInlineQuery('open jfredbot', true); // try in users + groups
+        } else {
+          // Fallback: copy a deep link hint or open t.me
+          const text = 'Check out jfredbot — open it from the bot!';
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+              if (tg) tg.showAlert('Link idea copied! (Launch the bot and share from there)');
+            });
+          } else {
+            if (tg) tg.showAlert(text);
+          }
+        }
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+      });
+
+      // Dev info toggle
+      let devVisible = false;
+      toggleDev.addEventListener('click', () => {
+        devVisible = !devVisible;
+        devCard.style.display = devVisible ? 'block' : 'none';
+        if (devVisible) renderDevInfo();
+      });
+
+      // Keyboard shortcut hint for power users
+      document.addEventListener('keydown', (e) => {
+        if (e.metaKey && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          msgInput.focus();
+          msgInput.select();
+        }
+      });
+    }
+
+    function renderDevInfo() {
+      if (!devInfo) return;
+      const info = {
+        isTelegram: isTelegram(),
+        platform: tg ? tg.platform : 'browser',
+        version: tg ? tg.version : 'n/a',
+        colorScheme: tg ? tg.colorScheme : 'light',
+        viewportHeight: tg ? tg.viewportHeight : window.innerHeight,
+        isExpanded: tg ? tg.isExpanded : true,
+        hasCloudStorage: !!(tg && tg.CloudStorage),
+        hasMainButton: !!(tg && tg.MainButton),
+        user: tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 'guest'
+      };
+      devInfo.textContent = JSON.stringify(info, null, 2);
+    }
+
+    // === Init sequence (optimized: load async bits early) ===
+    function init() {
+      renderUser();
+
+      // Load persisted score then render
+      loadScore(() => {
+        updateScoreUI();
+      });
+
+      setupActions();
+      setupChat();
+      setupControls();
+
+      // Populate a nice welcome log entry
+      setTimeout(() => {
+        if (logEntries.length === 0) {
+          addToLog('bot', { text: 'Welcome! Tap quick commands or send a message. +1 your score anytime.' });
+        }
+      }, 380);
+
+      // Show dev info automatically only outside Telegram for convenience
+      if (!isTelegram()) {
+        // devCard.style.display = 'block';
+        // renderDevInfo();
+      }
+
+      // Listen for theme changes (rare but good)
+      if (tg) {
+        tg.onEvent('themeChanged', () => {
+          // CSS vars update automatically; nothing else needed
+        });
+        tg.onEvent('viewportChanged', () => {
+          // Could adjust layout if using custom safe areas
+        });
+      }
+
+      // Expose a tiny debug hook
+      window.JFRED = { tg, sendToBot, getScore: () => score };
+    }
+
+    // Bootstrap
+    init();
   </script>
 </body>
 </html>
