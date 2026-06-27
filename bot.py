@@ -90,7 +90,7 @@ def answer_web_app_query(query_id: str, result: Dict) -> None:
     api_call("answerWebAppQuery", web_app_query_id=query_id, result=result)
 
 
-def build_webapp_button(url: str, text: str = "🚀 Open jfredbot") -> Dict:
+def build_webapp_button(url: str, text: str = "🏆 Today's World Cup") -> Dict:
     """Inline keyboard button that opens the Mini App."""
     return {
         "inline_keyboard": [
@@ -168,8 +168,9 @@ def handle_update(update: Dict[str, Any]) -> None:
         welcome = (
             f"👋 Hello {from_user.get('first_name', 'there')}!\n\n"
             f"Welcome to <b>{bot_name}</b>.\n"
-            "This bot powers a full-featured Telegram Mini App.\n\n"
-            "Tap the button below to open it:"
+            "See today's <b>FIFA World Cup 2026</b> matches — kickoff times, "
+            "live scores, and venues.\n\n"
+            "Tap the button below to open the schedule:"
         )
         send_message(
             chat_id,
@@ -184,18 +185,17 @@ def handle_update(update: Dict[str, Any]) -> None:
         send_message(
             chat_id,
             "Commands:\n"
-            "/start — open the mini app\n"
+            "/start — open today's World Cup matches\n"
             "/open — get the launch button again\n"
             "/url — show current Mini App URL (for debugging)\n"
-            "\nInside the Mini App: use quick commands, the +1 button, or type messages. "
-            "They arrive here as <code>web_app_data</code>."
+            "\nThe Mini App shows today's FIFA World Cup fixtures with live score updates."
         )
         return
 
     if text.startswith("/open"):
         send_message(
             chat_id,
-            "Open jfredbot:",
+            "Open World Cup schedule:",
             reply_markup=build_webapp_button(MINIAPP_URL)
         )
         return
