@@ -1,10 +1,10 @@
-# World Cup Today
+# Premier League Scores
 
-A lightweight web app for **today's FIFA World Cup 2026 matches** — live scores, kickoff times, and venues. Runs entirely in the browser with no backend required.
+A lightweight web app for **today's Premier League matches** — live scores, kickoff times, venues, and club crests. Runs entirely in the browser with no backend required.
 
 ## Features
 
-- Today's World Cup fixtures with team flags and venues
+- Today's Premier League fixtures with club logos
 - Live, scheduled, and final match status badges
 - Auto-refresh every 60 seconds
 - Light and dark mode (follows your system preference)
@@ -54,7 +54,7 @@ The app is a static site — just host the `public/` folder on any static host:
 - Cloudflare Pages
 - Vercel / Netlify
 
-Match data is fetched client-side from ESPN's public scoreboard API.
+Match data is fetched client-side from ESPN's English Premier League scoreboard API (`eng.1`).
 
 ## Files
 

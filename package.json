@@ -2,7 +2,7 @@
   "name": "world-cup-today",
   "version": "1.0.0",
   "private": true,
-  "description": "FIFA World Cup 2026 match viewer — static web app for Cloudflare Workers",
+  "description": "Premier League scores viewer — static web app for Cloudflare Workers",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy"
