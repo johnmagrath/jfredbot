@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve World Cup Today locally and open it in your browser."""
+"""Serve Premier League Scores locally and open it in your browser."""
 
 import argparse
 import http.server
@@ -21,7 +21,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Launch World Cup Today in your browser")
+    parser = argparse.ArgumentParser(description="Launch Premier League Scores in your browser")
     parser.add_argument("-p", "--port", type=int, default=8080, help="Port to listen on (default: 8080)")
     parser.add_argument("--no-open", action="store_true", help="Do not open a browser tab automatically")
     args = parser.parse_args()
@@ -29,7 +29,7 @@ def main() -> None:
     url = f"http://127.0.0.1:{args.port}/"
 
     with socketserver.TCPServer(("", args.port), Handler) as httpd:
-        print(f"Serving World Cup Today at {url}")
+        print(f"Serving Premier League Scores at {url}")
         print("Press Ctrl+C to stop")
 
         if not args.no_open:
