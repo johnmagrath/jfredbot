@@ -8,7 +8,7 @@ import threading
 import webbrowser
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent / "public"
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):

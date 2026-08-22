@@ -11,7 +11,24 @@ A lightweight web app for **today's FIFA World Cup 2026 matches** — live score
 - Share via the Web Share API or clipboard fallback
 - Mobile-friendly, single-page layout
 
-## Quick start
+## Quick start (Cloudflare Workers dev)
+
+This project is set up for **Cloudflare Workers static assets**. Install dependencies and run the local dev server:
+
+```bash
+npm install
+npm run dev
+```
+
+Wrangler serves the app at http://localhost:8787/ by default. Match data is fetched client-side from ESPN's public API (CORS-enabled), so no Worker proxy is needed.
+
+Deploy to Cloudflare:
+
+```bash
+npm run deploy
+```
+
+## Alternative: Python local server
 
 Requires Python 3.6+ (stdlib only — no dependencies).
 
@@ -30,12 +47,12 @@ python3 serve.py --no-open        # start server without opening a browser
 
 ## Deploy anywhere
 
-The app is a static site — just host `index.html` (and optionally `assets/`) on any static host:
+The app is a static site — just host the `public/` folder on any static host:
 
+- Cloudflare Workers (included — see above)
 - GitHub Pages
 - Cloudflare Pages
 - Vercel / Netlify
-- Any web server (`nginx`, `apache`, etc.)
 
 Match data is fetched client-side from ESPN's public scoreboard API.
 
@@ -43,17 +60,18 @@ Match data is fetched client-side from ESPN's public scoreboard API.
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Complete web app (HTML, CSS, JS) |
-| `serve.py` | Local dev server with auto-open browser |
-| `assets/` | Optional hero images |
+| `public/index.html` | Complete web app (HTML, CSS, JS) |
+| `wrangler.jsonc` | Cloudflare Workers static assets config |
+| `serve.py` | Alternative local dev server (Python) |
+| `public/assets/` | Optional hero images |
 | `generate_gif.py` | One-time asset generator (optional) |
 
 ## Development
 
-For quick iteration without the launcher script:
+For quick iteration without Wrangler:
 
 ```bash
-python3 -m http.server 8080
+python3 -m http.server 8080 --directory public
 ```
 
 Then visit http://localhost:8080/ in your browser.
