@@ -42,5 +42,8 @@ Thumbs.db
 *.swp
 *~
 
-# Generated assets (keep committed versions, ignore rebuild noise if desired)
-# assets/hero-640x360.gif
+node_modules/
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+!.env.example
